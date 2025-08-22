@@ -59,7 +59,23 @@
     border-radius: 5px;
 }
 
+.link-btn {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+
 .login-link-text{
+    color: #000;
+}
+
+.forgot-password{
+    text-align: center;
+    text-decoration: none;
     color: #000;
 }
 
