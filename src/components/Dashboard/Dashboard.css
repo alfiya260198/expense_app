@@ -1,0 +1,49 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.dashboard-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+p {
+  color: black;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.dashboard-incomplete {
+  background-color: burlywood;
+  padding: 8px 12px;
+  border-radius: 15px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+a {
+  text-decoration: none;
+  color: blue;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .dashboard-navbar {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .dashboard-welcome {
+    font-size: 1rem;
+  }
+
+  .dashboard-incomplete {
+    font-size: 0.85rem;
+    width: 100%;
+  }
+}

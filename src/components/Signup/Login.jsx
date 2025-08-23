@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { auth } from '../../firebase'
 import { signInWithEmailAndPassword } from "firebase/auth"
+import { Link, useNavigate } from 'react-router-dom'
 
 const Login = ({ setShowLogin, setIsLoggedIn }) => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -13,7 +15,8 @@ const Login = ({ setShowLogin, setIsLoggedIn }) => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      setIsLoggedIn(true) // ✅ switch to welcome screen
+      setIsLoggedIn(true)
+      navigate("/dashboard")
     } catch (err) {
       switch (err.code) {
         case "auth/invalid-email":
@@ -62,12 +65,13 @@ const Login = ({ setShowLogin, setIsLoggedIn }) => {
       <div className='login-link'>
         <p className='login-link-text'>
           Don't have an account?{" "}
-          <button 
+          <Link 
+            to="/"
             className="link-btn" 
             onClick={() => setShowLogin(false)}
           >
             Sign Up
-          </button>
+          </Link>
         </p>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import './Signup.css'
 import { auth } from '../../firebase'
 import { createUserWithEmailAndPassword } from "firebase/auth"
+import { Link } from 'react-router-dom'
 
 const Signup = ({ setShowLogin }) => {
   const [email, setEmail] = useState("")
@@ -9,6 +10,7 @@ const Signup = ({ setShowLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -16,25 +18,44 @@ const Signup = ({ setShowLogin }) => {
     setSuccess("")
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      setError("Passwords do not match ❌")
       return
     }
 
     try {
+      setLoading(true)
       await createUserWithEmailAndPassword(auth, email, password)
-      setSuccess("Account created successfully 🎉")
+      setSuccess("Account created successfully 🎉 Redirecting to login...")
+
+      // Reset form
       setEmail("")
       setPassword("")
       setConfirmPassword("")
+
+      // Redirect to login after 2 sec
+      setTimeout(() => {
+        setShowLogin(true)
+      }, 2000)
+
     } catch (err) {
-      setError(err.message)
+      let msg = "Something went wrong!"
+      if (err.code === "auth/email-already-in-use") {
+        msg = "This email is already registered."
+      } else if (err.code === "auth/weak-password") {
+        msg = "Password should be at least 6 characters."
+      } else if (err.code === "auth/invalid-email") {
+        msg = "Invalid email address."
+      }
+      setError(msg)
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className='signup'>
       <div className='form-box'>
-        <p className='signup-title'>SignUp</p>
+        <p className='signup-title'>Sign Up</p>
         <form className='signup-form' onSubmit={handleSubmit}>
           <input 
             type="email" 
@@ -57,7 +78,13 @@ const Signup = ({ setShowLogin }) => {
             onChange={(e) => setConfirmPassword(e.target.value)} 
             required
           />
-          <button type="submit" className='signup-btn'>SignUp</button>
+          <button 
+            type="submit" 
+            className='signup-btn' 
+            disabled={loading}
+          >
+            {loading ? "Creating..." : "Sign Up"}
+          </button>
         </form>
 
         {error && <p style={{color: "red", marginTop: "10px"}}>{error}</p>}
@@ -66,12 +93,13 @@ const Signup = ({ setShowLogin }) => {
       <div className='login-link'>
         <p className='login-link-text'>
           Have an account?{" "}
-          <button 
+          <Link 
+            to="/login"
             className="link-btn" 
             onClick={() => setShowLogin(true)}
           >
             Login
-          </button>
+          </Link>
         </p>
       </div>
     </div>
