@@ -1,3 +1,13 @@
+.dashboard-navbar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .complete-profile-container {
   padding: 20px;
   margin: 20px auto;
@@ -17,7 +27,7 @@
   align-items: center;
   gap: 15px;
   margin: 20px auto;
-  flex-wrap: wrap; /* allow wrapping for smaller screens */
+  flex-wrap: wrap;
 }
 
 .complete-profile-input {
@@ -25,7 +35,7 @@
   border-radius: 5px;
   border: 1px solid gray;
   width: 30%;
-  min-width: 200px; /* prevents input from shrinking too much */
+  min-width: 200px;
 }
 
 .complete-profile-btn {
@@ -42,7 +52,6 @@
   background-color: peru;
 }
 
-/* ✅ Tablet (<= 768px) */
 @media (max-width: 768px) {
   .complete-profile-form {
     flex-direction: column;
@@ -59,7 +68,6 @@
   }
 }
 
-/* ✅ Mobile (<= 480px) */
 @media (max-width: 480px) {
   .complete-profile-container {
     padding: 15px;

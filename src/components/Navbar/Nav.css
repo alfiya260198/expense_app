@@ -20,7 +20,6 @@
   color: dodgerblue;
 }
 
-/* Nav links (desktop) */
 .nav-links{
   display: flex;
   gap: 2rem;
@@ -31,7 +30,6 @@
   color: #343434;
 }
 
-/* Hamburger button (hidden on desktop) */
 .hamburger{
   display: none;
   flex-direction: column;
@@ -46,7 +44,6 @@
   transition: 0.3s;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .nav-links{
     position: absolute;
