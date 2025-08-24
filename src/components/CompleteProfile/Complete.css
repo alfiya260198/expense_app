@@ -52,6 +52,16 @@
   background-color: peru;
 }
 
+.profile-preview{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    margin: 20px auto;
+    flex-wrap: wrap;
+    width: 50%;
+}
+
 @media (max-width: 768px) {
   .complete-profile-form {
     flex-direction: column;
