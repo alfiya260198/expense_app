@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -26,11 +26,17 @@ const App = () => {
   return (
     <Router>
       {!isLoggedIn && <AuthNavbar />}
+
       <Routes>
         <Route path="/" element={!isLoggedIn ? <Signup /> : <Navigate to="/dashboard" />} />
-        <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/dashboard" />} />
 
-        <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/dashboard" />} />
+        <Route
+  path="/dashboard"
+  element={isLoggedIn ? <Dashboard setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" />}
+/>
+
+
         <Route path="/complete-profile" element={isLoggedIn ? <CompleteProfile /> : <Navigate to="/login" />} />
 
         <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/"} />} />

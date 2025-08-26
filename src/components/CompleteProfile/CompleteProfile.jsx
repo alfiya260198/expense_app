@@ -4,6 +4,7 @@ import CompleteProfileNav from './CompleteProfileNav';
 import { FaGithub } from 'react-icons/fa';
 import { TbWorld } from 'react-icons/tb';
 import './Complete.css';
+import VerifyEmailButton from './VerifyEmailButton';
 
 const CompleteProfile = () => {
   const [fullName, setFullName] = useState('');
@@ -11,7 +12,6 @@ const CompleteProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch profile info on mount
   useEffect(() => {
     const fetchProfile = async () => {
       if (!auth.currentUser) {
@@ -46,7 +46,6 @@ const CompleteProfile = () => {
     fetchProfile();
   }, []);
 
-  // Handle form submit: update profile data
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -142,6 +141,7 @@ const CompleteProfile = () => {
             >
               Edit Profile
             </button>
+            <VerifyEmailButton />
           </div>
         )}
       </div>
