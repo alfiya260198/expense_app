@@ -1,0 +1,21 @@
+.expense-form{
+    width: 50%;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.input-field input, .input-field select{
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+.add-btn{
+    width: 40%;
+    border-radius: 10px;
+    margin-left: 30%;
+    border: none;
+    padding: 10px 0;
+    background-color: rgb(0, 210, 0);
+    font-weight: bold;
+}

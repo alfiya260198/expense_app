@@ -9,9 +9,29 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+   
 }
 
-.logout{
+.title{
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 20px 0;
+}
+.right-nav{
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 30%;
+  gap: 5px;
+}
+.left-nav{
+  width: 20%;
+}
+
+.logout-btn{
   border: none;
   background-color: rgb(179, 11, 11);
   color: white;
@@ -22,11 +42,9 @@
 
 .dashboard-navbar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   align-items: center;
-  padding: 20px;
   flex-wrap: wrap;
-  gap: 10px;
 }
 
 p {
@@ -46,6 +64,17 @@ a {
   text-decoration: none;
   color: blue;
   font-weight: bold;
+}
+
+.expense-list{
+  width: 50%;
+  margin: auto;
+  padding: 10px;
+}
+
+li{
+  list-style: none;
+  padding: 10px 0;
 }
 
 @media (max-width: 768px) {
