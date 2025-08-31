@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import "./ExpenseForm.css"
+import "./ExpenseForm.css";
 
 const ExpenseForm = ({ onAddExpense }) => {
   const [money, setMoney] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!money || !description) {
@@ -15,18 +16,40 @@ const ExpenseForm = ({ onAddExpense }) => {
     }
 
     const newExpense = {
-      id: Date.now(),
       money,
       description,
       category,
     };
 
-    onAddExpense(newExpense);
+    try {
+      setLoading(true);
+      const response = await fetch(
+        "https://expense-tracker-app-b4585-default-rtdb.firebaseio.com/alk/-OZ-EiBh8uEfu8FOhB5Mm/expenses.json",
+        {
+          method: "POST",
+          body: JSON.stringify(newExpense),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    // reset form
-    setMoney("");
-    setDescription("");
-    setCategory("Food");
+      if (!response.ok) {
+        throw new Error("Failed to save expense");
+      }
+
+      const data = await response.json();
+      onAddExpense({ id: data.name, ...newExpense });
+
+      // reset form
+      setMoney("");
+      setDescription("");
+      setCategory("Food");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,7 +83,9 @@ const ExpenseForm = ({ onAddExpense }) => {
         </select>
       </div>
 
-      <button type="submit" className="add-btn">Add Expense</button>
+      <button type="submit" className="add-btn" disabled={loading}>
+        {loading ? "Adding..." : "Add Expense"}
+      </button>
     </form>
   );
 };
