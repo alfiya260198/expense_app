@@ -1,54 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./ExpenseForm.css";
 
-const ExpenseForm = ({ onAddExpense }) => {
+const ExpenseForm = ({ onAddExpense, onUpdateExpense, editingExpense, onCancelEdit }) => {
   const [money, setMoney] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Prefill in edit mode
+  useEffect(() => {
+    if (editingExpense) {
+      setMoney(editingExpense.money ?? "");
+      setDescription(editingExpense.description ?? "");
+      setCategory(editingExpense.category ?? "Food");
+    } else {
+      setMoney("");
+      setDescription("");
+      setCategory("Food");
+    }
+  }, [editingExpense]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!money || !description) {
       alert("Please fill all fields");
       return;
     }
-
-    const newExpense = {
-      money,
-      description,
+    const payload = {
+      money: String(money),
+      description: description.trim(),
       category,
+      date: editingExpense?.date || new Date().toISOString(),
     };
 
     try {
-      setLoading(true);
-      const response = await fetch(
-        "https://expense-tracker-app-b4585-default-rtdb.firebaseio.com/alk/-OZ-EiBh8uEfu8FOhB5Mm/expenses.json",
-        {
-          method: "POST",
-          body: JSON.stringify(newExpense),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save expense");
+      setSubmitting(true);
+      if (editingExpense) {
+        await onUpdateExpense(editingExpense.id, payload);
+      } else {
+        await onAddExpense(payload);
       }
-
-      const data = await response.json();
-      onAddExpense({ id: data.name, ...newExpense });
-
-      // reset form
-      setMoney("");
-      setDescription("");
-      setCategory("Food");
-    } catch (error) {
-      alert(error.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -80,12 +73,19 @@ const ExpenseForm = ({ onAddExpense }) => {
           <option value="Petrol">Petrol</option>
           <option value="Salary">Salary</option>
           <option value="Shopping">Shopping</option>
+          <option value="Other">Other</option>
         </select>
       </div>
 
-      <button type="submit" className="add-btn" disabled={loading}>
-        {loading ? "Adding..." : "Add Expense"}
+      <button type="submit" className="add-btn" disabled={submitting}>
+        {submitting ? (editingExpense ? "Updating..." : "Adding...") : (editingExpense ? "Update Expense" : "Add Expense")}
       </button>
+
+      {editingExpense && (
+        <button type="button" className="add-btn" style={{ marginLeft: 8, background: "#aaa" }} onClick={onCancelEdit}>
+          Cancel
+        </button>
+      )}
     </form>
   );
 };
