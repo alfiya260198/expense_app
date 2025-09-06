@@ -1,29 +1,27 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// ✅ Firebase v1 REST endpoint
+
 const API_URL =
   "https://expense-tracker-app-b4585-default-rtdb.firebaseio.com/expenses.json";
 
-// Fetch all expenses
 export const fetchExpenses = createAsyncThunk("expenses/fetch", async () => {
   const res = await axios.get(API_URL);
   if (res.data) {
     return Object.keys(res.data).map((key) => ({
-      id: key, // Always unique Firebase key
+      id: key,
       ...res.data[key],
     }));
   }
   return [];
 });
 
-// Add expense
+
 export const addExpense = createAsyncThunk("expenses/add", async (expense) => {
   const res = await axios.post(API_URL, expense);
   return { ...expense, id: res.data.name }; // Firebase gives unique `name`
 });
 
-// Delete expense
 export const deleteExpense = createAsyncThunk("expenses/delete", async (id) => {
   await axios.delete(
     `https://expense-tracker-app-b4585-default-rtdb.firebaseio.com/expenses/${id}.json`
@@ -31,7 +29,7 @@ export const deleteExpense = createAsyncThunk("expenses/delete", async (id) => {
   return id;
 });
 
-// Edit expense
+
 export const editExpense = createAsyncThunk(
   "expenses/edit",
   async (updatedExpense) => {

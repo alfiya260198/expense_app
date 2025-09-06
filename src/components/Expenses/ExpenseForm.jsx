@@ -6,7 +6,6 @@ const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, clearEdit 
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
 
-  // Whenever editingExpense changes, prefill the form
   useEffect(() => {
     if (editingExpense) {
       setMoney(editingExpense.money);
@@ -24,16 +23,14 @@ const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, clearEdit 
     }
 
     if (editingExpense) {
-      // Update existing expense
       onUpdateExpense({
         ...editingExpense,
         money,
         description,
         category,
       });
-      clearEdit(); // Exit edit mode
+      clearEdit();
     } else {
-      // Add new expense
       const newExpense = {
         money,
         description,
@@ -42,7 +39,6 @@ const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, clearEdit 
       onAddExpense(newExpense);
     }
 
-    // reset form
     setMoney("");
     setDescription("");
     setCategory("Food");

@@ -5,7 +5,7 @@
 }
 
 .dashboard {
-  background-color: rgb(241, 241, 241);
+  background-color: transparent;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -53,7 +53,7 @@ p {
 }
 
 .dashboard-incomplete {
-  background-color: burlywood;
+  background-color: transparent;
   padding: 8px 12px;
   border-radius: 15px;
   text-align: center;

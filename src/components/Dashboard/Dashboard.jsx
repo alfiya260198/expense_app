@@ -6,12 +6,14 @@ import {
   deleteExpense,
   editExpense,
 } from "../../store/slices/expenseSlice";
+import { toggleTheme } from "../../store/slices/themeSlice";
 import ExpenseForm from "../Expenses/ExpenseForm";
 import DashboardNavbar from "../Dashboard/DashboardNavbar";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { items: expenses, loading } = useSelector((state) => state.expenses);
+  const darkMode = useSelector((state) => state.theme.darkMode);
 
   const [editingExpense, setEditingExpense] = useState(null);
 
@@ -37,10 +39,30 @@ const Dashboard = () => {
 
   const clearEdit = () => setEditingExpense(null);
 
-  const totalAmount = expenses.reduce(
-    (sum, exp) => sum + Number(exp.money),
-    0
-  );
+  const totalAmount = expenses.reduce((sum, exp) => sum + Number(exp.money), 0);
+
+  const downloadCSV = () => {
+    if (!expenses.length) return;
+
+    const headers = ["Amount", "Description", "Category"];
+    const rows = expenses.map((exp) => [
+      exp.money,
+      exp.description,
+      exp.category,
+    ]);
+
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "expenses.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <>
@@ -64,12 +86,38 @@ const Dashboard = () => {
           ) : (
             <ul>
               {expenses
-                .filter((exp) => exp.id !== (editingExpense && editingExpense.id)) // hide editing item
+                .filter(
+                  (exp) => exp.id !== (editingExpense && editingExpense.id)
+                )
                 .map((exp) => (
                   <li key={exp.id}>
                     💰 {exp.money} | 📝 {exp.description} | 📌 {exp.category}
-                    <button onClick={() => handleDelete(exp.id)} style={{border: "none", padding: "10px 20px", background: "#DC143C", color: "white", borderRadius: "10px", marginLeft: "10px"}}>❌ Delete</button>
-                    <button onClick={() => handleEdit(exp)} style={{border: "none", padding: "10px 20px", background: "#DAA520", color: "white", borderRadius: "10px", marginLeft: "10px"}}>✏️ Edit</button>
+                    <button
+                      onClick={() => handleDelete(exp.id)}
+                      style={{
+                        border: "none",
+                        padding: "10px 20px",
+                        background: "#DC143C",
+                        color: "white",
+                        borderRadius: "10px",
+                        marginLeft: "10px",
+                      }}
+                    >
+                      ❌ Delete
+                    </button>
+                    <button
+                      onClick={() => handleEdit(exp)}
+                      style={{
+                        border: "none",
+                        padding: "10px 20px",
+                        background: "#DAA520",
+                        color: "white",
+                        borderRadius: "10px",
+                        marginLeft: "10px",
+                      }}
+                    >
+                      ✏️ Edit
+                    </button>
                   </li>
                 ))}
             </ul>
@@ -77,7 +125,37 @@ const Dashboard = () => {
         </div>
 
         {totalAmount > 10000 && (
-          <button className="premium-btn" style={{border: "none", padding: "10px 20px", background: "brown", color: "white", borderRadius: "10px"}}>Activate Premium</button>
+          <div style={{ marginTop: "20px" }}>
+            <button
+              onClick={() => {
+                console.log("Toggling theme, current:", darkMode);
+                dispatch(toggleTheme());
+              }}
+              style={{
+                border: "none",
+                padding: "10px 20px",
+                background: darkMode ? "#444" : "brown",
+                color: "white",
+                borderRadius: "10px",
+                marginRight: "10px",
+              }}
+            >
+              {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            </button>
+
+            <button
+              onClick={downloadCSV}
+              style={{
+                border: "none",
+                padding: "10px 20px",
+                background: "green",
+                color: "white",
+                borderRadius: "10px",
+              }}
+            >
+              📂 Download Expenses (CSV)
+            </button>
+          </div>
         )}
       </div>
     </>
