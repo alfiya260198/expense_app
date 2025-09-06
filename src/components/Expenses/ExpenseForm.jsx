@@ -1,48 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ExpenseForm.css";
 
-const ExpenseForm = ({ onAddExpense, onUpdateExpense, editingExpense, onCancelEdit }) => {
+const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, clearEdit }) => {
   const [money, setMoney] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
-  const [submitting, setSubmitting] = useState(false);
 
-  // Prefill in edit mode
+  // Whenever editingExpense changes, prefill the form
   useEffect(() => {
     if (editingExpense) {
-      setMoney(editingExpense.money ?? "");
-      setDescription(editingExpense.description ?? "");
-      setCategory(editingExpense.category ?? "Food");
-    } else {
-      setMoney("");
-      setDescription("");
-      setCategory("Food");
+      setMoney(editingExpense.money);
+      setDescription(editingExpense.description);
+      setCategory(editingExpense.category);
     }
   }, [editingExpense]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!money || !description) {
       alert("Please fill all fields");
       return;
     }
-    const payload = {
-      money: String(money),
-      description: description.trim(),
-      category,
-      date: editingExpense?.date || new Date().toISOString(),
-    };
 
-    try {
-      setSubmitting(true);
-      if (editingExpense) {
-        await onUpdateExpense(editingExpense.id, payload);
-      } else {
-        await onAddExpense(payload);
-      }
-    } finally {
-      setSubmitting(false);
+    if (editingExpense) {
+      // Update existing expense
+      onUpdateExpense({
+        ...editingExpense,
+        money,
+        description,
+        category,
+      });
+      clearEdit(); // Exit edit mode
+    } else {
+      // Add new expense
+      const newExpense = {
+        money,
+        description,
+        category,
+      };
+      onAddExpense(newExpense);
     }
+
+    // reset form
+    setMoney("");
+    setDescription("");
+    setCategory("Food");
   };
 
   return (
@@ -73,19 +76,12 @@ const ExpenseForm = ({ onAddExpense, onUpdateExpense, editingExpense, onCancelEd
           <option value="Petrol">Petrol</option>
           <option value="Salary">Salary</option>
           <option value="Shopping">Shopping</option>
-          <option value="Other">Other</option>
         </select>
       </div>
 
-      <button type="submit" className="add-btn" disabled={submitting}>
-        {submitting ? (editingExpense ? "Updating..." : "Adding...") : (editingExpense ? "Update Expense" : "Add Expense")}
+      <button type="submit" className="add-btn">
+        {editingExpense ? "Update Expense" : "Add Expense"}
       </button>
-
-      {editingExpense && (
-        <button type="button" className="add-btn" style={{ marginLeft: 8, background: "#aaa" }} onClick={onCancelEdit}>
-          Cancel
-        </button>
-      )}
     </form>
   );
 };

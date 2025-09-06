@@ -1,124 +1,84 @@
 import React, { useEffect, useState } from "react";
-import DashboardNavbar from "./DashboardNavbar";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchExpenses,
+  addExpense,
+  deleteExpense,
+  editExpense,
+} from "../../store/slices/expenseSlice";
 import ExpenseForm from "../Expenses/ExpenseForm";
-
-const DB_BASE = "https://expense-tracker-app-b4585-default-rtdb.firebaseio.com";
-const EXPENSES_URL = `${DB_BASE}/expenses`; // same path you used before
+import DashboardNavbar from "../Dashboard/DashboardNavbar";
 
 const Dashboard = () => {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [listError, setListError] = useState("");
+  const dispatch = useDispatch();
+  const { items: expenses, loading } = useSelector((state) => state.expenses);
+
   const [editingExpense, setEditingExpense] = useState(null);
 
   useEffect(() => {
-    let alive = true;
-    const fetchExpenses = async () => {
-      setLoading(true);
-      setListError("");
-      try {
-        const res = await fetch(`${EXPENSES_URL}.json`);
-        if (!res.ok) throw new Error("Failed to fetch expenses");
-        const data = await res.json();
-        const items = data
-          ? Object.entries(data).map(([id, val]) => ({ id, ...val }))
-          : [];
-        if (alive) setExpenses(items);
-      } catch (e) {
-        if (alive) setListError(e.message || "Failed to load expenses");
-      } finally {
-        if (alive) setLoading(false);
-      }
-    };
-    fetchExpenses();
-    return () => { alive = false; };
-  }, []);
+    dispatch(fetchExpenses());
+  }, [dispatch]);
 
-
-  const handleAddExpense = async (expense) => {
-    const res = await fetch(`${EXPENSES_URL}.json`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(expense),
-    });
-    if (!res.ok) throw new Error("Failed to add expense");
-    const data = await res.json(); // { name: "<id>" }
-    setExpenses((prev) => [...prev, { id: data.name, ...expense }]);
+  const handleAddExpense = (expense) => {
+    dispatch(addExpense(expense));
   };
 
-  const handleDeleteExpense = async (id) => {
-    const res = await fetch(`${EXPENSES_URL}/${id}.json`, { method: "DELETE" });
-    if (!res.ok) {
-      console.error("Delete failed");
-      return;
-    }
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-    console.log("Expense successfully deleted");
-    // If you were editing the same item, exit edit mode
-    if (editingExpense?.id === id) setEditingExpense(null);
+  const handleDelete = (id) => {
+    dispatch(deleteExpense(id));
   };
 
-  const handleUpdateExpense = async (id, payload) => {
-    const res = await fetch(`${EXPENSES_URL}/${id}.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error("Failed to update expense");
-    setExpenses((prev) => prev.map((e) => (e.id === id ? { id, ...payload } : e)));
-    setEditingExpense(null);
+  const handleEdit = (exp) => {
+    setEditingExpense(exp);
   };
+
+  const handleUpdateExpense = (updated) => {
+    dispatch(editExpense(updated));
+  };
+
+  const clearEdit = () => setEditingExpense(null);
+
+  const totalAmount = expenses.reduce(
+    (sum, exp) => sum + Number(exp.money),
+    0
+  );
 
   return (
     <>
       <DashboardNavbar />
-
       <div className="dashboard-container">
         <h2 className="title">Expense Tracker</h2>
 
         <ExpenseForm
           onAddExpense={handleAddExpense}
-          onUpdateExpense={handleUpdateExpense}
           editingExpense={editingExpense}
-          onCancelEdit={() => setEditingExpense(null)}
+          onUpdateExpense={handleUpdateExpense}
+          clearEdit={clearEdit}
         />
 
         <div className="expense-list">
           <h3>My Expenses</h3>
-
-          {loading && <p>Loading expenses...</p>}
-          {listError && <p style={{ color: "red" }}>{listError}</p>}
-
-          {!loading && !listError && (
+          {loading ? (
+            <p>Loading...</p>
+          ) : expenses.length === 0 ? (
+            <p>No expenses yet.</p>
+          ) : (
             <ul>
-              {expenses.length === 0 ? (
-                <p>No expenses yet.</p>
-              ) : (
-                expenses.map((exp) => (
-                  <li key={exp.id} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <span>💰 {exp.money} | 📝 {exp.description} | 📌 {exp.category}</span>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button
-                        className="add-btn"
-                        style={{ background: "#ffa500", padding: "10px 20px", width: "100px"}}
-                        onClick={() => setEditingExpense(exp)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="add-btn"
-                        style={{ background: "#e74c3c", padding: "10px 20px", width: "100px" }}
-                        onClick={() => handleDeleteExpense(exp.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+              {expenses
+                .filter((exp) => exp.id !== (editingExpense && editingExpense.id)) // hide editing item
+                .map((exp) => (
+                  <li key={exp.id}>
+                    💰 {exp.money} | 📝 {exp.description} | 📌 {exp.category}
+                    <button onClick={() => handleDelete(exp.id)} style={{border: "none", padding: "10px 20px", background: "#DC143C", color: "white", borderRadius: "10px", marginLeft: "10px"}}>❌ Delete</button>
+                    <button onClick={() => handleEdit(exp)} style={{border: "none", padding: "10px 20px", background: "#DAA520", color: "white", borderRadius: "10px", marginLeft: "10px"}}>✏️ Edit</button>
                   </li>
-                ))
-              )}
+                ))}
             </ul>
           )}
         </div>
+
+        {totalAmount > 10000 && (
+          <button className="premium-btn" style={{border: "none", padding: "10px 20px", background: "brown", color: "white", borderRadius: "10px"}}>Activate Premium</button>
+        )}
       </div>
     </>
   );
