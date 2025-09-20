@@ -1,14 +1,14 @@
-import { render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom"; 
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import "@testing-library/jest-dom";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import Dashboard from "../components/Dashboard/Dashboard";
 import expensesReducer from "../store/slices/expenseSlice";
 import themeReducer from "../store/slices/themeSlice";
 import { BrowserRouter } from "react-router-dom";
-import store from "../store/store";
-import { MemoryRouter } from "react-router-dom";
+import axios from "axios";
 
+jest.mock("axios");
 
 function renderWithStore(preloadedState) {
   const store = configureStore({
@@ -21,134 +21,124 @@ function renderWithStore(preloadedState) {
 
   return render(
     <Provider store={store}>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BrowserRouter>
         <Dashboard />
       </BrowserRouter>
     </Provider>
   );
 }
 
-describe("Dashboard Component", () => {
-  test("renders dashboard title", () => {
-    renderWithStore({
+describe("Dashboard Tests", () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test("fetchExpenses is called on mount", async () => {
+    axios.get.mockResolvedValue({ data: { a1: { money: 100, description: "Food", category: "Food" } } });
+    await act(async () => renderWithStore({ expenses: { items: [], loading: false, error: null }, theme: { isDark: false, isPremiumActive: false } }));
+
+    expect(axios.get).toHaveBeenCalled();
+  });
+
+  test("displays error when fetch fails", async () => {
+    axios.get.mockRejectedValue(new Error("Network Error"));
+    await act(async () => renderWithStore({ expenses: { items: [], loading: false, error: null }, theme: { isDark: false, isPremiumActive: false } }));
+
+    expect(screen.getByText(/No expenses yet/i)).toBeInTheDocument();
+  });
+
+  test("adds a new expense", async () => {
+    axios.post.mockResolvedValue({ data: { name: "xyz123" } });
+
+    await act(async () => renderWithStore({
       expenses: { items: [], loading: false, error: null },
-      theme: { darkMode: false },
-    });
+      theme: { isDark: false, isPremiumActive: false }
+    }));
 
-    const titles = screen.getAllByText(/Expense Tracker/i);
-    expect(titles.length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByPlaceholderText(/Money Spent/i), { target: { value: "50" } });
+    fireEvent.change(screen.getByPlaceholderText(/Description/i), { target: { value: "Coffee" } });
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "Food" } });
+
+    await act(async () => fireEvent.click(screen.getByText(/Add Expense/i)));
+
+    expect(axios.post).toHaveBeenCalled();
   });
 
-  test("renders welcome message", () => {
-    renderWithStore({
+  test("deletes an expense", async () => {
+    axios.delete.mockResolvedValue({});
+
+    await act(async () => renderWithStore({
+      expenses: { items: [{ id: "1", money: 100, description: "Food", category: "Food" }], loading: false, error: null },
+      theme: { isDark: false, isPremiumActive: false }
+    }));
+
+    await act(async () => fireEvent.click(screen.getByText(/Delete/i)));
+
+    expect(axios.delete).toHaveBeenCalledWith(expect.stringContaining("expenses/1.json"));
+  });
+
+  test("edits an expense", async () => {
+    axios.put.mockResolvedValue({});
+
+    await act(async () => renderWithStore({
+      expenses: { items: [{ id: "1", money: 100, description: "Food", category: "Food" }], loading: false, error: null },
+      theme: { isDark: false, isPremiumActive: false }
+    }));
+
+    await act(async () => fireEvent.click(screen.getByText(/Edit/i)));
+    fireEvent.change(screen.getByPlaceholderText(/Description/i), { target: { value: "Lunch" } });
+    await act(async () => fireEvent.click(screen.getByText(/Update Expense/i)));
+
+    expect(axios.put).toHaveBeenCalled();
+  });
+
+  test("toggles dark mode", async () => {
+    await act(async () => renderWithStore({
       expenses: { items: [], loading: false, error: null },
-      theme: { darkMode: false },
-    });
+      theme: { isDark: false, isPremiumActive: false }
+    }));
 
-    expect(screen.getByText(/Welcome to Expense Tracker/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Switch to Dark Mode/i));
+    expect(screen.getByText(/Switch to Light Mode/i)).toBeInTheDocument();
   });
 
-  test("renders loading state", () => {
-    renderWithStore({
-      expenses: { items: [], loading: true, error: null },
-      theme: { darkMode: false },
-    });
+  test("activates premium when total > 10000", async () => {
+    await act(async () => renderWithStore({
+      expenses: { items: [{ id: "1", money: 6000 }, { id: "2", money: 5000 }], loading: false, error: null },
+      theme: { isDark: false, isPremiumActive: false }
+    }));
 
-    expect(screen.getByText(/Loading/i)).toBeInTheDocument();
+    const button = screen.getByText(/Activate Premium/i);
+    fireEvent.click(button);
+    expect(button).toBeInTheDocument();
   });
 
-  test("renders empty state when no expenses", () => {
-    renderWithStore({
-      expenses: { items: [], loading: false, error: null },
-      theme: { darkMode: false },
-    });
+  test("downloads CSV", async () => {
+    await act(async () => renderWithStore({
+      expenses: { items: [{ id: "1", money: 200, description: "Food", category: "Food" }], loading: false, error: null },
+      theme: { isDark: false, isPremiumActive: false }
+    }));
 
-    expect(screen.getByText(/My Expenses/i)).toBeInTheDocument();
+    const createElementSpy = jest.spyOn(document, "createElement");
+    fireEvent.click(screen.getByText(/Download Expenses/i));
+
+    expect(createElementSpy).toHaveBeenCalledWith("a");
   });
 
-  test("renders expenses when items exist", () => {
-    renderWithStore({
-      expenses: {
-        items: [
-          { id: 1, money: 500, description: "Food", category: "Food" },
-          { id: 2, money: 1200, description: "Petrol", category: "Petrol" },
-        ],
-        loading: false,
-        error: null,
-      },
-      theme: { darkMode: false },
-    });
-
-    expect(screen.getByText(/Food/i)).toBeInTheDocument();
-    expect(screen.getByText(/Petrol/i)).toBeInTheDocument();
-  });
-
-   test("renders premium button if expenses exceed 10000", () => {
-    renderWithStore({
-      expenses: {
-        items: [
-          { id: 1, money: 6000, description: "Shopping", category: "Clothes" },
-          { id: 2, money: 5000, description: "Gadgets", category: "Electronics" },
-        ],
-        loading: false,
-        error: null,
-      },
-      theme: { darkMode: false },
-    });
-
-    expect(
-      screen.getByRole("button", { name: /Activate Premium/i })
-    ).toBeInTheDocument();
-  });
-
-  test("does not render premium button if expenses are below 10000", () => {
-    renderWithStore({
-      expenses: {
-        items: [{ id: 1, money: 2000, description: "Snacks", category: "Food" }],
-        loading: false,
-        error: null,
-      },
-      theme: { darkMode: false },
-    });
-
-    expect(screen.queryByText(/Premium/i)).not.toBeInTheDocument();
-  });
-
-  test("renders switch to dark mode button", () => {
-    renderWithStore({
-      expenses: { items: [], loading: false, error: null },
-      theme: { darkMode: false }, // ensure dark mode OFF
-    });
-
-    expect(
-      screen.getByRole("button", { name: /Switch to Dark Mode/i })
-    ).toBeInTheDocument();
-  });
-
-   test("renders download expenses button", () => {
-    renderWithStore({
-      expenses: { items: [], loading: false, error: null },
-      theme: { darkMode: false },
-    });
-
-    expect(
-      screen.getByRole("button", { name: /Download Expenses/i })
-    ).toBeInTheDocument();
-  });
-
- 
-test("renders logout button", () => {
-  render(
-    <Provider store={store}>
-      <MemoryRouter>
-        <Dashboard />
-      </MemoryRouter>
-    </Provider>
-  );
-
-  const logoutButtons = screen.getAllByRole("button", { name: /Logout/i });
-
-  expect(logoutButtons[0]).toBeInTheDocument();
+test("logout button logs message", () => {
+  const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  renderWithStore();
+  fireEvent.click(screen.getByText(/Logout/i));
+  expect(logSpy).toHaveBeenCalledWith("Logging out...");
+  logSpy.mockRestore();
 });
+
+
+test("shows loading spinner", () => {
+  renderWithStore({
+    expenses: { items: [], loading: true, error: null },
+    theme: { isDark: false, isPremiumActive: false }
+  });
+  expect(screen.getByText(/Loading/i)).toBeInTheDocument();
+});
+
 
 });

@@ -13,7 +13,8 @@ import DashboardNavbar from "../Dashboard/DashboardNavbar";
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { items: expenses, loading } = useSelector((state) => state.expenses);
-  const darkMode = useSelector((state) => state.theme.darkMode);
+const darkMode = useSelector((state) => state.theme.darkMode);
+
 
   const [editingExpense, setEditingExpense] = useState(null);
 
@@ -128,6 +129,7 @@ const Dashboard = () => {
         </div>
 
         <div style={{ marginTop: "20px" }}>
+          {/* Premium Button (visible only if totalAmount > 10000) */}
           {totalAmount > 10000 && (
             <button
               style={{
