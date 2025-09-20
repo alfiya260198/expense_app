@@ -39,7 +39,10 @@ const Dashboard = () => {
 
   const clearEdit = () => setEditingExpense(null);
 
-  const totalAmount = expenses.reduce((sum, exp) => sum + Number(exp.money), 0);
+  const totalAmount = expenses.reduce(
+    (sum, exp) => sum + Number(exp.money),
+    0
+  );
 
   const downloadCSV = () => {
     if (!expenses.length) return;
@@ -124,39 +127,63 @@ const Dashboard = () => {
           )}
         </div>
 
-        {totalAmount > 10000 && (
-          <div style={{ marginTop: "20px" }}>
+        <div style={{ marginTop: "20px" }}>
+          {totalAmount > 10000 && (
             <button
-              onClick={() => {
-                console.log("Toggling theme, current:", darkMode);
-                dispatch(toggleTheme());
-              }}
               style={{
                 border: "none",
                 padding: "10px 20px",
-                background: darkMode ? "#444" : "brown",
+                background: "purple",
                 color: "white",
                 borderRadius: "10px",
                 marginRight: "10px",
               }}
             >
-              {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              Activate Premium
             </button>
+          )}
 
-            <button
-              onClick={downloadCSV}
-              style={{
-                border: "none",
-                padding: "10px 20px",
-                background: "green",
-                color: "white",
-                borderRadius: "10px",
-              }}
-            >
-              📂 Download Expenses (CSV)
-            </button>
-          </div>
-        )}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            style={{
+              border: "none",
+              padding: "10px 20px",
+              background: darkMode ? "#444" : "brown",
+              color: "white",
+              borderRadius: "10px",
+              marginRight: "10px",
+            }}
+          >
+            {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          </button>
+
+          <button
+            onClick={downloadCSV}
+            style={{
+              border: "none",
+              padding: "10px 20px",
+              background: "green",
+              color: "white",
+              borderRadius: "10px",
+            }}
+          >
+            Download Expenses
+          </button>
+
+          <button
+            onClick={() => console.log("Logging out...")}
+            style={{
+              border: "none",
+              padding: "10px 20px",
+              background: "#DC143C",
+              color: "white",
+              borderRadius: "10px",
+              marginLeft: "10px",
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </>
   );
